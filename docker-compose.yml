@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+  worker:
+    build:
+      context: ./worker
+      dockerfile: Dockerfile
+    image: night-worker:local
+    user: "1000:1000"
+    read_only: true
+    tmpfs:
+      - /tmp:size=512m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    working_dir: /runner
+    environment:
+      - HOME=/home/worker
+    volumes:
+      # Allow overriding mounts via .env (Compose variable substitution).
+      # Examples:
+      # - CLAUDE_HOME_VOLUME=claude_home:/home/worker/.claude
+      # - JOBS_VOLUME=/mnt/nextcloud-data/edoardo/ralph_loop:/jobs:ro
+      # Split mounts (recommended for ro-in/rw-out):
+      # - JOBS_IN_VOLUME=/mnt/nextcloud-data/edoardo/ralph_loop/in:/jobs/in:ro
+      # - JOBS_OUT_VOLUME=/mnt/nextcloud-data/edoardo/ralph_loop/out:/jobs/out
+      # - JOBS_LOGS_VOLUME=/mnt/nextcloud-data/edoardo/ralph_loop/logs:/jobs/logs
+      - ${CLAUDE_HOME_VOLUME:-claude_home:/home/worker}
+      - ${JOBS_VOLUME:-./jobs:/jobs:ro}
+      - ${JOBS_IN_VOLUME:-}
+      - ${JOBS_OUT_VOLUME:-}
+      - ${JOBS_LOGS_VOLUME:-}
+    entrypoint: ["python3", "/usr/local/bin/worker.py"]
+
+volumes:
+  claude_home:
