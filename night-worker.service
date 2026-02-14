@@ -1,0 +1,18 @@
+[Unit]
+Description=Night Worker Ralph Loop
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+User=edoardo
+Group=www-data
+WorkingDirectory=/home/edoardo/night_worker
+ExecStart=/home/edoardo/night_worker/ralph-loop.sh
+Restart=always
+RestartSec=10
+StandardOutput=append:/var/log/night-worker.log
+StandardError=append:/var/log/night-worker.log
+
+[Install]
+WantedBy=multi-user.target

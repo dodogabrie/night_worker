@@ -1,15 +1,15 @@
-version: "3.9"
-
 services:
   worker:
     build:
       context: ./worker
       dockerfile: Dockerfile
     image: night-worker:local
-    user: "1000:1000"
+    user: "1000:33"
     read_only: true
     tmpfs:
       - /tmp:size=512m,mode=1777
+      - /jobs:size=1m,mode=1777
+      - /job:size=100m,mode=1777
     cap_drop:
       - ALL
     security_opt:
@@ -18,20 +18,17 @@ services:
     environment:
       - HOME=/home/worker
     volumes:
-      # Allow overriding mounts via .env (Compose variable substitution).
-      # Examples:
-      # - CLAUDE_HOME_VOLUME=claude_home:/home/worker/.claude
-      # - JOBS_VOLUME=/mnt/nextcloud-data/edoardo/ralph_loop:/jobs:ro
-      # Split mounts (recommended for ro-in/rw-out):
-      # - JOBS_IN_VOLUME=/mnt/nextcloud-data/edoardo/ralph_loop/in:/jobs/in:ro
-      # - JOBS_OUT_VOLUME=/mnt/nextcloud-data/edoardo/ralph_loop/out:/jobs/out
-      # - JOBS_LOGS_VOLUME=/mnt/nextcloud-data/edoardo/ralph_loop/logs:/jobs/logs
-      - ${CLAUDE_HOME_VOLUME:-claude_home:/home/worker}
-      - ${JOBS_VOLUME:-./jobs:/jobs:ro}
-      - ${JOBS_IN_VOLUME:-}
-      - ${JOBS_OUT_VOLUME:-}
-      - ${JOBS_LOGS_VOLUME:-}
-    entrypoint: ["python3", "/usr/local/bin/worker.py"]
+      # Writable named volume for /home/worker (Claude Code needs to write to $HOME).
+      - claude_home:/home/worker
+      # Optional: overlay host .claude credentials into the container.
+      # Set CLAUDE_CREDS_VOLUME in .env to bind-mount your host credentials, e.g.:
+      #   CLAUDE_CREDS_VOLUME=/home/you/.claude:/home/worker/.claude
+      # If unset (using setup-token), the default is a harmless no-op mount.
+      - ${CLAUDE_CREDS_VOLUME:-/dev/null:/dev/null}
+      - ${JOBS_IN_VOLUME}
+      - ${JOBS_OUT_VOLUME}
+      - ${JOBS_LOGS_VOLUME}
+    entrypoint: ["/usr/local/bin/entrypoint.sh"]
 
 volumes:
   claude_home:

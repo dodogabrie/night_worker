@@ -249,7 +249,6 @@ def start_job(
         f"{task_prompt_file}:/job/task_prompt.txt:ro",
         "-v",
         f"{tmp_root}:/tmp/work",
-        "worker",
     ]
 
     # Only mount OUTPUT_DIR to /job/output when the worker is using that default path.
@@ -257,6 +256,8 @@ def start_job(
     # volumes (e.g. JOBS_VOLUME) to provide the right writable mount.
     if worker_output_dir == "/job/output":
         command.extend(["-v", f"{output_dir}:/job/output"])
+
+    command.append("worker")
 
     rc = subprocess.run(command, env=env).returncode
 

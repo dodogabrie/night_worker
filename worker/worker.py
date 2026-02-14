@@ -180,9 +180,9 @@ def run_iteration(
     iter_log = log_dir / f"iter-{iteration}.log"
     log(f"[{job_id}] iteration {iteration} starting")
 
-    cmd = [claude_cmd, *shlex.split(claude_args), "--cwd", str(project_dir)]
+    cmd = [claude_cmd, *shlex.split(claude_args)]
     if claude_input_mode != "stdin":
-        cmd.extend(["--prompt", prompt_text])
+        cmd.extend(["-p", prompt_text])
 
     try:
         with iter_log.open("w", encoding="utf-8") as f:
@@ -194,6 +194,7 @@ def run_iteration(
                     stdout=f,
                     stderr=subprocess.STDOUT,
                     timeout=iter_timeout_seconds,
+                    cwd=str(project_dir),
                     check=False,
                 )
             else:
@@ -203,6 +204,7 @@ def run_iteration(
                     stdout=f,
                     stderr=subprocess.STDOUT,
                     timeout=iter_timeout_seconds,
+                    cwd=str(project_dir),
                     check=False,
                 )
     except subprocess.TimeoutExpired:
