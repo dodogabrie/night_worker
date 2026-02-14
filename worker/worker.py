@@ -53,32 +53,6 @@ def detect(pattern: re.Pattern[str], log_file: Path) -> bool:
     return bool(pattern.search(log_file.read_text(encoding="utf-8", errors="ignore")))
 
 
-def write_external_last_log(
-    external_log_dir: Path,
-    job_id: str,
-    iteration_label: str,
-    status: str,
-    stop_reason: str,
-    iter_log: Path,
-) -> None:
-    external_log_dir.mkdir(parents=True, exist_ok=True)
-    out_path = external_log_dir / f"{job_id}.last.log"
-    header = "\n".join(
-        [
-            f"job_id={job_id}",
-            f"iteration={iteration_label}",
-            f"status={status}",
-            f"stop_reason={stop_reason or 'none'}",
-            f"updated_at_unix={int(time.time())}",
-            "",
-        ]
-    )
-    body = ""
-    if iter_log.exists():
-        body = iter_log.read_text(encoding="utf-8", errors="ignore")
-    out_path.write_text(header + body, encoding="utf-8")
-
-
 def copy_tree_contents(src: Path, dst: Path) -> None:
     dst.mkdir(parents=True, exist_ok=True)
     for item in src.iterdir():
@@ -241,9 +215,6 @@ def main() -> None:
     prd_file_name = os.environ.get("PRD_FILE", "PRD.md")
     progress_file_name = os.environ.get("PROGRESS_FILE", "progress.txt")
     version_offset = env_int("VERSION_OFFSET", 0)
-    external_log_dir_raw = os.environ.get("EXTERNAL_LOG_DIR", "").strip()
-    external_log_dir = Path(external_log_dir_raw) if external_log_dir_raw else None
-
     project_dir.mkdir(parents=True, exist_ok=True)
     log_dir.mkdir(parents=True, exist_ok=True)
     result_staging.mkdir(parents=True, exist_ok=True)
@@ -394,19 +365,6 @@ def main() -> None:
                 name_suffix=name_suffix,
             )
             (output_dir / f"{job_id}{name_suffix}.status").write_text(f"{iter_status}\n", encoding="utf-8")
-
-            if external_log_dir is not None:
-                try:
-                    write_external_last_log(
-                        external_log_dir,
-                        job_id,
-                        str(version_offset + iteration),
-                        iter_status,
-                        iter_stop_reason,
-                        iter_log,
-                    )
-                except OSError:
-                    pass
 
             if hard_stop:
                 break

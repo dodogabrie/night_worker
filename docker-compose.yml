@@ -4,11 +4,10 @@ services:
       context: ./worker
       dockerfile: Dockerfile
     image: night-worker:local
-    user: "1000:33"
+    user: "1000:1000"
     read_only: true
     tmpfs:
       - /tmp:size=512m,mode=1777
-      - /jobs:size=1m,mode=1777
       - /job:size=100m,mode=1777
     cap_drop:
       - ALL
@@ -18,17 +17,19 @@ services:
     environment:
       - HOME=/home/worker
     volumes:
-      # Writable named volume for /home/worker (Claude Code needs to write to $HOME).
       - claude_home:/home/worker
-      # Optional: overlay host .claude credentials into the container.
-      # Set CLAUDE_CREDS_VOLUME in .env to bind-mount your host credentials, e.g.:
-      #   CLAUDE_CREDS_VOLUME=/home/you/.claude:/home/worker/.claude
-      # If unset (using setup-token), the default is a harmless no-op mount.
       - ${CLAUDE_CREDS_VOLUME:-/dev/null:/dev/null}
-      - ${JOBS_IN_VOLUME}
-      - ${JOBS_OUT_VOLUME}
-      - ${JOBS_LOGS_VOLUME}
     entrypoint: ["/usr/local/bin/entrypoint.sh"]
+
+  test:
+    build:
+      context: .
+      dockerfile: tests/Dockerfile
+    volumes:
+      - .:/app:ro
+    command: ["python", "-m", "pytest", "tests/", "-v"]
+    profiles:
+      - test
 
 volumes:
   claude_home:

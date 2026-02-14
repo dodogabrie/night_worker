@@ -34,7 +34,7 @@ echo
 echo "=== Service restarted successfully! ==="
 echo
 echo "To watch logs in real-time, run:"
-echo "  tail -f /var/log/night-worker.log"
+echo "  tail -f \$(grep '^LOG_DIR=' ../.env | cut -d= -f2)/night-worker.log"
 echo
 echo "Or check with journalctl:"
 echo "  sudo journalctl -u night-worker -f"

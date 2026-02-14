@@ -14,7 +14,7 @@ RUN apk add --no-cache \
     zip \
   && npm install -g @anthropic-ai/claude-code \
   && adduser -D -u 1000 worker \
-  && mkdir -p /home/worker /jobs/in /jobs/out /jobs/logs /runner /job/output \
+  && mkdir -p /home/worker /runner /job/output \
   && chown -R 1000:1000 /home/worker
 
 COPY worker.py /usr/local/bin/worker.py

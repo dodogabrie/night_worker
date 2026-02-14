@@ -1,0 +1,4 @@
+# Progress
+
+- [ ] Task 1: Create greet.py
+- [ ] Task 2: Add tests

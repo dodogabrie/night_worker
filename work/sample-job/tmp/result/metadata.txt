@@ -1,0 +1,6 @@
+job_id=sample-job
+status=failed
+stop_reason=assistant_exit_1
+started_at_unix=1771065146
+ended_at_unix=1771065150
+iterations_attempted=1
